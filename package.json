@@ -16,7 +16,7 @@
     "build-js": "browserify game.js -o index.js",
     "build": "npm run lint-js && npm run build-js"
   },
-  "author": "Eric Lathrop <eric@ericlathrop.com> (http://ericlathrop.com)",
+  "author": "What?! ",
   "license": "MIT",
   "jshintConfig": {
     "camelcase": true,

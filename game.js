@@ -5,6 +5,8 @@ var canvas = document.getElementById("canvas");
 
 var manifest = {
 	"images": {
+		"runman-idle": "img/runman.png",
+		"plane-idle": "img/plane.png"
 	},
 	"sounds": {
 	},
@@ -33,7 +35,7 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 	// simulation
 
 	if(game.keyboard.consumePressed("space")){
-		game.scenes.switchTo("main");
+		game.scenes.switchTo("plane");
 	}
 }, function(context) {
 	// draw
@@ -64,6 +66,39 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 	context.fillStyle = "#ffffff";
 	context.fillRect(canvas.width/2 - canvas.width*0.2, 0, canvas.width*0.4, canvas.height);
 	drawEntity(context,this.player);
+}));
+
+game.scenes.add("plane", new Splat.Scene(canvas, function() {
+	// initialization
+	var playerImage = game.images.get("plane-idle");
+	this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height/2 -25,playerImage.width,playerImage.height,playerImage,0,0);
+	this.player.color = "blue";	
+}, function() {
+	// simulation
+
+	//possibly change controls ( tb discussed)
+	//move left
+	if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.x >canvas.width/2 - canvas.width*0.2 + 100){
+		this.player.x -= 150;
+	}
+	//move right
+	if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.x < canvas.width/2 + canvas.width*0.2 - 100){
+		this.player.x += 150;
+	}
+	//move up
+	if((game.keyboard.consumePressed("up") || game.keyboard.consumePressed("w")) && this.player.y > canvas.height/2 - canvas.height*0.2 + 120){
+		this.player.y -= 150;
+	}
+	//move down
+	if((game.keyboard.consumePressed("down") || game.keyboard.consumePressed("s")) && this.player.y < canvas.height/2 + canvas.height*0.2 - 120){
+		this.player.y += 150;
+	}
+}, function(context) {
+	// draw
+	context.fillStyle = "#ffffff";
+	context.fillRect(0, canvas.height/2 - canvas.height*0.2, canvas.width, canvas.height*0.4);
+	//drawEntity(context,this.player);
+	this.player.draw(context);
 }));
 
 game.scenes.switchTo("loading");
