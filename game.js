@@ -35,7 +35,7 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 	// simulation
 
 	if(game.keyboard.consumePressed("space")){
-		game.scenes.switchTo("plane");
+		game.scenes.switchTo("main");
 	}
 }, function(context) {
 	// draw
