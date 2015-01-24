@@ -46,20 +46,23 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 }));
 game.scenes.add("main", new Splat.Scene(canvas, function() {
 	// initialization
-	this.player = new Splat.Entity(100,100,50,50);
+	this.player = new Splat.Entity(canvas.width/2 - 25,canvas.height*(7/8),50,50);
 	this.player.color = "blue";
 }, function() {
 	// simulation
-	if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.x >0){
-		this.player.x -= 100;
+
+	//possibly change controls ( tb discussed)
+	if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.x >canvas.width/2 - canvas.width*0.2 + 100){
+		this.player.x -= 150;
+
 	}
-	if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.x < 200){
-		this.player.x += 100;
+	if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.x < canvas.width/2 + canvas.width*0.2 - 100){
+		this.player.x += 150;
 	}
 }, function(context) {
 	// draw
 	context.fillStyle = "#ffffff";
-	context.fillRect(0, 0, canvas.width, canvas.height);
+	context.fillRect(canvas.width/2 - canvas.width*0.2, 0, canvas.width*0.4, canvas.height);
 	drawEntity(context,this.player);
 }));
 
