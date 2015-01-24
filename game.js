@@ -19,7 +19,8 @@ var manifest = {
 var game = new Splat.Game(canvas, manifest);
 
 function generatePositions(canvas, player){
-    var laneWidth = 100;
+    
+    var laneWidth = 2*player.width;
 
     var centerLane = canvas.width/2 - player.width/2;
     var renderDistance = canvas.height*(7/8);
@@ -34,16 +35,19 @@ function generatePositions(canvas, player){
             centerLane - laneWidth
         ],
 
-        leftBound: canvas.width/2 - canvas.width*0.2 + 100,
-        rightBound: canvas.width/2 + canvas.width*0.2 - 100,
+        leftBound: canvas.width/2 - canvas.width*0.2 + laneWidth,
+        rightBound: canvas.width/2 + canvas.width*0.2 - laneWidth,
         renderDistance: renderDistance,
         obstacleStart: function() { return player.y - renderDistance; }
+
     };
 }
 
 function spawnObstacle(positions){
-    return new Splat.Entity(positions.lanes[randomNumber(3)],
+	var o =new Splat.Entity(positions.lanes[randomNumber(3)],
                             positions.obstacleStart(), 40, 40);
+	o.color = "#00ff00";
+    return o;
 }
 
 function randomNumber(max) {
@@ -129,11 +133,11 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 }));
 
 game.scenes.add("main", new Splat.Scene(canvas, function() {
-    // initialization
-    var playerSize = 50;
-    // var playerImage = game.images.get("runman-idle");
 
-    this.player = new Splat.Entity(canvas.width/2 - 25,canvas.height*(7/8),playerSize,playerSize); 
+	var playerImage = game.images.get("runman-idle");
+
+
+    this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
 
     this.camera = new Splat.EntityBoxCamera(this.player,
                                             canvas.width, canvas.height*(1/8),
@@ -173,11 +177,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
                      canvas.width*0.4, canvas.height);
 
-    drawEntity(context, this.player);
-
+    this.player.draw(context);
+    context.fillstyle = "#00ff00";
     for(var i = 0; i < this.obstacles.length; i++) {
         drawEntity(context, this.obstacles[i]);
     }
+
 }));
 
 game.scenes.add("plane", new Splat.Scene(canvas, function() {
@@ -231,7 +236,8 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
     // draw
     context.fillStyle = "#ffffff";
     context.fillRect(0, canvas.height/2 - canvas.height*0.2, canvas.width, canvas.height*0.4);
-    drawEntity(context,this.player);
+
+    this.player.draw(context);
 }));
 
 game.scenes.switchTo("loading");
