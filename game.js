@@ -28,6 +28,11 @@ var manifest = {
     "fonts": {
     },
     "animations": {
+        "runman" : {
+            "strip": "img/walk-anim.png",
+            "frames": 4,
+            "msPerFrame": 100
+        }
     }
 };
 
@@ -163,7 +168,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     var scene = this;
 
-    var playerImage = game.images.get("runman-idle");
+    var playerImage = game.animations.get("runman");
     
 
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
