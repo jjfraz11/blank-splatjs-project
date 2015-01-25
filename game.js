@@ -163,6 +163,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.player.vy = -1;
     this.player.vx = 0;
 
+    this.moveX = this.player.x;
+    this.playerV = 0.5;
+
     this.spawners = [];
     this.obstacles = [];
     this.obstacles2 = [ spawnObstacle(this.positions) ];
@@ -175,7 +178,6 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     createSpawner(this, this.obstacleSpawnCenter);
     createSpawner(this, this.obstacleSpawnLeft);
 
-
     this.timers.spawnObstacle = new Splat.Timer(undefined, 5000, function(){
         scene.obstacleSpawnRight.spawn();
         scene.obstacleSpawnCenter.spawn();
@@ -185,29 +187,20 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     });
     this.timers.spawnObstacle.start();
 
-    this.moveX = this.player.x;
-    this.moveTo = false;
-    this.playerV = 0.5;
+
 }, function(elapsedMs) {
     //simulation
-    this.player.move(elapsedMs);
-    this.obstacleSpawnRight.move(elapsedMs);
-    this.obstacleSpawnCenter.move(elapsedMs);
-    this.obstacleSpawnLeft.move(elapsedMs);
-
     //possibly change controls ( tb discussed)
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) &&
-       this.player.currentLane !== 2 && !this.moveTo) {
-        this.moveX = this.positions.lanes[this.player.currentLane+1] ;//- ((this.player.width/2)-10);
+       this.player.x > this.positions.leftBound){
+        this.moveX = this.positions.lanes[this.player.currentLane + 1];
         this.player.currentLane +=1;
-        this.moveTo = true;
     }
 
     if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) &&
-       this.player.currentLane !== 0 && !this.moveTo){
-        this.moveX = this.positions.lanes[this.player.currentLane -1] ;//- ((this.player.width/2)-10);
+       this.player.x < this.positions.rightBound){
+        this.moveX = this.positions.lanes[this.player.currentLane - 1];
         this.player.currentLane -=1;
-        this.moveTo = true;
     }
 
     if(this.player.x !== this.moveX){
@@ -215,9 +208,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
         console.log(this.player.x, this.moveX);
     } else {
         this.player.vx = 0;
-        this.moveTo = false;
     }
-    this.player.move(elapsedMs);
 
     //obstacle management
     for( var x = 0; x < this.obstacles.length; x++){
@@ -231,6 +222,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     if(game.keyboard.consumePressed("o")) {
         this.obstacles2.push(spawnObstacle(this.positions));
     }
+
+    this.obstacleSpawnRight.move(elapsedMs);
+    this.obstacleSpawnCenter.move(elapsedMs);
+    this.obstacleSpawnLeft.move(elapsedMs);
+
+    this.player.move(elapsedMs);
 
 }, function(context) {
     // draw
