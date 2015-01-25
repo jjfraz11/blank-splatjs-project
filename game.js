@@ -84,12 +84,12 @@ function centerText(context, text, offsetX, offsetY) {
 }
 
 function drawEntity(context, drawable){
-    if(drawable.drawme === true){ 
-        drawable.draw(context);
-        console.log("got here");
-        return; }
     context.fillStyle = drawable.color;
     context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
+}
+
+function drawObject(context, drawable){
+    drawable.draw(context);
 }
 
 /**
@@ -148,7 +148,7 @@ function createSpawner(scene, entity){
 function createWorkerSpawner(scene, entity){
     entity.spawn = function(){
         var enemy = createObstacle("workers", this.x, this.y);
-        scene.obstacles.push(enemy);
+        scene.obstacles3.push(enemy);
         console.log(enemy);
     };
     entity.color = "orange";
@@ -157,11 +157,7 @@ function createWorkerSpawner(scene, entity){
 
 function createObstacle(imageTitle, xpos, ypos){
     var image = game.images.get(imageTitle);
-    var obstacle = new Splat.AnimatedEntity(xpos, ypos, image.width, image.height);
-    obstacle.draw = function(context){
-        context.drawImage(image, this.x, this.y);
-    };
-    obstacle.drawme = true;
+    var obstacle = new Splat.AnimatedEntity(xpos, ypos, image.width, image.height, image, 0, 0);
     return obstacle;
 }
 
@@ -177,7 +173,6 @@ function createObstacle(imageTitle, xpos, ypos){
 game.scenes.add("title", new Splat.Scene(canvas, function() {
     // initialization
     //var workers = game.images.get("workers");
-
 }, function() {
     // simulation
     if(game.keyboard.consumePressed("space")){
@@ -218,6 +213,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     // this.spawners = [ objectSpawner(this, "obstacle", [ 20, 20 ], this.positions) ];
     this.obstacles = [];
     this.obstacles2 = [ spawnObstacle(this.positions) ];
+    this.obstacles3 = [];
 
     this.obstacleSpawnRight = new Splat.Entity(this.positions.lanes[0], 20, 20, 20);
     this.obstacleSpawnCenter = new Splat.Entity(this.positions.lanes[1], 20, 20, 20);
@@ -311,8 +307,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     for(i = 0; i < this.obstacles2.length; i++) {
         drawEntity(context, this.obstacles2[i]);
-
     }
+
+    for(i = 0; i< this.obstacles3.length; i++){
+        drawObject(context, this.obstacles3[i]);
+    }
+
 
     drawEntity(context, scene.obstacleSpawnRight);
     drawEntity(context, scene.obstacleSpawnCenter);
