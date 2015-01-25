@@ -6,7 +6,23 @@ var canvas = document.getElementById("canvas");
 var manifest = {
     "images": {
 	"runman-idle": "img/runman.png",
-	"plane-idle": "img/plane.png"
+	"plane-idle": "img/plane.png",
+	"cone": "img/cone.png",
+	"crack1": "img/crack1.png",
+	"crack2": "img/crack2.png",
+	"emptyPlane": "img/emptyPlane/png",
+	"manhole": "img/manhole.png",
+	"police": "img/police.png",
+	"racer": "img/racer.png",
+	"sidewalkLine": "img/sidewalkLing.png",
+	"squirel": "img/squirel.png",
+	"street": "img/street.png",
+	"streetPatch1": "img/streetPatch1.png",
+	"streetPatch2": "img/streetPatch2.png",
+	"streetPatch3": "img/streetPatch3.png",
+	"streetPatch4": "img/streetPatch4.png",
+	"workers": "img/workers.png"
+
     },
     "sounds": {
     },
@@ -190,6 +206,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
 }, function(elapsedMs) {
     //simulation
+
     //possibly change controls ( tb discussed)
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) &&
        this.player.x > this.positions.leftBound){
@@ -212,12 +229,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     //obstacle management
     for( var x = 0; x < this.obstacles.length; x++){
-        //this.enemies[x].x -= enemySpeed;
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
         this.obstacles.splice(x,1);
         console.log("got splice");
         }
     }
+    
 
     if(game.keyboard.consumePressed("o")) {
         this.obstacles2.push(spawnObstacle(this.positions));
