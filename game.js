@@ -71,14 +71,16 @@ function generatePositions(canvas, player){
     };
 }
 
-function spawnObstacle(scene){
-    var positions = scene.positions;
-    var o =new Splat.Entity(positions.randomLane(), positions.renderStart(), 40, 40);
-    o.color = "#00ff00";
 
-    scene.obstacles.push(o);
+function drawEntity(context, drawable, color){
+    if (drawable instanceof Splat.AnimatedEntity ) {
+        drawable.draw(context);
+    } else {
+        context.fillStyle = color;
+        context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
+    }
 
-    return o;
+    console.log(drawable, typeof(drawable));
 }
 
 function randomInterval() {
@@ -134,11 +136,6 @@ function createMovementLine(entity, x, y, velocity){
     }
 }
 
-function drawEntity(context, drawable, color){
-    context.fillStyle = color;
-    context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
-}
-
 function switchScene(myGame, key, sceneName) {
     if(myGame.keyboard.isPressed(key)) {
 	myGame.scenes.switchTo(sceneName);
@@ -150,6 +147,26 @@ function switchScene(myGame, key, sceneName) {
        switchScene(game, "h", "main");
        switchScene(game, "p", "plane");
     */
+}
+
+function spawnObstacle(scene){
+    var obstacle =new Splat.Entity(scene.positions.randomLane(), scene.positions.renderStart(), 40, 40);
+    obstacle.color = "#00ff00";
+    scene.obstacles.push(obstacle);
+
+    return obstacle;
+}
+
+function spawnWorker(scene){
+    //TODO(frazier): factor out hardcoded number for lane
+    var worker = imageEntity("workers", scene.positions.lanes[randomNumber(2)], scene.positions.renderStart());
+    scene.obstacles.push(worker);
+}
+
+function imageEntity(imageTitle, xpos, ypos){
+    var image = game.images.get(imageTitle);
+    var entity = new Splat.AnimatedEntity(xpos, ypos, image.width, image.height, image, 0, 0);
+    return entity;
 }
 
 function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
@@ -174,6 +191,7 @@ function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
 
 game.scenes.add("title", new Splat.Scene(canvas, function() {
     // initialization
+    //var workers = game.images.get("workers");
 }, function() {
     // simulation
     switchScene(game, "t", "title");
@@ -185,6 +203,7 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
     if(game.keyboard.consumePressed("space")){
 	game.scenes.switchTo("main");
     }
+    
 }, function(context) {
     // draw
     context.fillStyle = "#092227";
@@ -218,6 +237,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.spawners = [];
     this.obstacles = [];
 
+    this.workerSpawner   = new ObjectSpawner(this, "workers", randomInterval, spawnWorker);
     this.obstacleSpawner = new ObjectSpawner(this, "obstacles", randomInterval, spawnObstacle);
 
 }, function(elapsedMs) {
@@ -257,7 +277,6 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
             console.log("player hit");
         }
     }
-    
 
     if(game.keyboard.consumePressed("o")) {
         spawnObstacle(this);
@@ -273,7 +292,6 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     //                 canvas.width*0.4, canvas.height);
 
     this.player.draw(context);
-    context.fillstyle = "#00ff00";
 
     for(var i = 0; i< this.obstacles.length; i++){
         drawEntity(context, this.obstacles[i], this.obstacles[i].color);
