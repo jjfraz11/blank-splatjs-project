@@ -192,11 +192,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.obstacles = [];
     this.obstacles2 = [ spawnObstacle(this.positions) ];
 
-    this.obstacleSpawnRight = new Splat.Entity(this.positions.rightLane, 20, 20, 20);
-    this.obstacleSpawnCenter = new Splat.Entity(this.positions.centerLane, 20, 20, 20);
-    this.obstacleSpawnLeft = new Splat.Entity(this.positions.leftLane, 20, 20, 20);
-    
-    console.log(JSON.stringify(this.obstacleSpawnLeft));
+    this.obstacleSpawnRight = new Splat.Entity(this.positions.lanes[0], 20, 20, 20);
+    this.obstacleSpawnCenter = new Splat.Entity(this.positions.lanes[1], 20, 20, 20);
+    this.obstacleSpawnLeft = new Splat.Entity(this.positions.lanes[2], 20, 20, 20);
 
     createSpawner(this, this.obstacleSpawnRight);
     createSpawner(this, this.obstacleSpawnCenter);
@@ -215,9 +213,13 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     // Create timers as properties of spawner
     // Fix spawners array on scene
     this.timers.spawnObstacle = new Splat.Timer(undefined, 5000, function(){
-        for(var i; i < scene.spawners.length; i++) {
-            scene.spawners[i].spawn();
-        }
+        scene.obstacleSpawnRight.spawn();
+        scene.obstacleSpawnCenter.spawn();
+        scene.obstacleSpawnLeft.spawn();
+
+        // for(var i; i < scene.spawners.length; i++) {
+        //     scene.spawners[i].spawn();
+        // }
         this.reset();
         this.start();
     });
