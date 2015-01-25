@@ -80,7 +80,7 @@ function drawEntity(context, drawable, color){
         context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
     }
 
-    console.log(drawable, typeof(drawable));
+    //console.log(drawable, typeof(drawable));
 }
 
 function randomInterval() {
@@ -170,14 +170,14 @@ function imageEntity(imageTitle, xpos, ypos){
 }
 
 function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
-    console.log(this, scene, type);
+    //console.log(this, scene, type);
 
     var spawner = this;
 
     this.spawn = function () { return fnSpawn(scene); };
 
     this.timer = new Splat.Timer(undefined, fnDelay(), function() {
-        console.log("test spawn");
+        //console.log("test spawn");
         spawner.spawn();
         this.expireMillis = fnDelay();
         this.reset();
@@ -271,9 +271,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     for( var x = 0; x < this.obstacles.length; x++){
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
             this.obstacles.splice(x,1);
-            console.log("got splice");
         }
         if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
+            this.obstacles.splice(x,1);
             console.log("player hit");
         }
     }
