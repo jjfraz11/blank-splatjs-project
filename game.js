@@ -85,8 +85,6 @@ function drawEntity(context, drawable, color){
         context.fillStyle = color;
         context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
     }
-
-    console.log(drawable, typeof(drawable));
 }
 
 function randomInterval() {
@@ -167,6 +165,16 @@ function spawnWorker(scene){
     //TODO(frazier): factor out hardcoded number for lane
     var worker = imageEntity("workers", scene.positions.lanes[randomNumber(2)], scene.positions.renderStart());
     scene.obstacles.push(worker);
+
+    return worker;
+}
+
+function spawnCone(scene){
+    //TODO(frazier): factor out hardcoded number for lane
+    var cone = imageEntity("cone", scene.positions.lanes[randomNumber(3)], scene.positions.renderStart());
+    scene.obstacles.push(cone);
+
+    return cone;
 }
 
 function imageEntity(imageTitle, xpos, ypos){
@@ -176,15 +184,14 @@ function imageEntity(imageTitle, xpos, ypos){
 }
 
 function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
-    console.log(this, scene, type);
-
     var spawner = this;
 
     this.spawn = function () { return fnSpawn(scene); };
 
     this.timer = new Splat.Timer(undefined, fnDelay(), function() {
-        console.log("test spawn");
+        console.log(type + " spawn");
         spawner.spawn();
+
         this.expireMillis = fnDelay();
         this.reset();
         this.start();
@@ -252,6 +259,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.spawners = [];
     this.obstacles = [];
 
+    this.coneSpawner     = new ObjectSpawner(this, "cones", randomInterval, spawnCone);
     this.workerSpawner   = new ObjectSpawner(this, "workers", randomInterval, spawnWorker);
     this.obstacleSpawner = new ObjectSpawner(this, "obstacles", randomInterval, spawnObstacle);
 
@@ -288,9 +296,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     for( var x = 0; x < this.obstacles.length; x++){
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
             this.obstacles.splice(x,1);
-            console.log("got splice");
         }
         if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
+            this.obstacles.splice(x,1);
             console.log("player hit");
         }
     }
