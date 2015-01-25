@@ -66,10 +66,18 @@ function generatePositions(canvas, player){
     };
 }
 
-function spawnObstacle(positions){
+function spawnObstacle(scene){
+    var positions = scene.positions;
     var o =new Splat.Entity(positions.randomLane(), positions.renderStart(), 40, 40);
     o.color = "#00ff00";
+
+    scene.obstacles.push(o);
+
     return o;
+}
+
+function randomInterval() {
+    return randomNumber(2000);
 }
 
 function randomNumber(max) {
@@ -130,19 +138,22 @@ function createMovementLine(entity, x, y, velocity){
     }
 }
 
-function drawObstacle(context, drawable, color){
+function drawEntity(context, drawable, color){
     context.fillStyle = color;
     context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
 }
 
-function createSpawner(scene, entity){
-    entity.spawn = function (){
-        var enemy = new Splat.Entity(this.x, this.y, 20, 20);
-        enemy.color = "orange";
-        scene.obstacles.push(enemy);
-    };
-    entity.color = "orange";
-    entity.vy = -1;
+function switchScene(myGame, key, sceneName) {
+    if(myGame.keyboard.isPressed(key)) {
+	myGame.scenes.switchTo(sceneName);
+    }
+    /* goes into each scene:
+       switchScene(game, "t", "title");
+       switchScene(game, "m", "death");
+       switchScene(game, "c", "car");
+       switchScene(game, "h", "main");
+       switchScene(game, "p", "plane");
+    */
 }
 
 function createWorkerSpawner(scene, entity){
@@ -161,20 +172,37 @@ function createObstacle(imageTitle, xpos, ypos){
     return obstacle;
 }
 
-// function objectSpawner(scene, type, fnSpawn) {
-//     var spawner = {
-//         spawn: fnSpawn
-//     };
-//     console.log(scene, type);
+function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
+    console.log(this, scene, type);
 
-//     return spawner;
-// }
+    var spawner = this;
+
+    this.spawn = function () { return fnSpawn(scene); };
+
+    this.timer = new Splat.Timer(undefined, fnDelay(), function() {
+        console.log("test spawn");
+        spawner.spawn();
+        this.expireMillis = fnDelay();
+        this.reset();
+        this.start();
+    });
+    this.timer.start();
+
+    scene.timers[type] = this.timer;
+    scene.spawners.push(spawner);
+}
 
 game.scenes.add("title", new Splat.Scene(canvas, function() {
     // initialization
     //var workers = game.images.get("workers");
 }, function() {
     // simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
     if(game.keyboard.consumePressed("space")){
 	game.scenes.switchTo("main");
     }
@@ -191,7 +219,6 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 
 game.scenes.add("main", new Splat.Scene(canvas, function() {
     // initialization
-    var scene = this;
     var playerImage = game.animations.get("runman");
 
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
@@ -210,9 +237,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.moveX = this.player.x;
     this.playerV = 0.5;
 
-    // this.spawners = [ objectSpawner(this, "obstacle", [ 20, 20 ], this.positions) ];
+    this.spawners = [];
     this.obstacles = [];
-    this.obstacles2 = [ spawnObstacle(this.positions) ];
+
     this.obstacles3 = [];
 
     this.obstacleSpawnRight = new Splat.Entity(this.positions.lanes[0], 20, 20, 20);
@@ -229,7 +256,6 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
         this.obstacleSpawnCenter
     ];
 
-    
     //TODO:
     // Have spawners use entity template
     // Have spawners pick random lane
@@ -247,10 +273,16 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
         this.start();
     });
 
-    this.timers.spawnObstacle.start();
+    this.obstacleSpawner = new ObjectSpawner(this, "obstacles", randomInterval, spawnObstacle);
 
 }, function(elapsedMs) {
     //simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
     //possibly change controls ( tb discussed)
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.currentLane > 0){
         this.player.currentLane -= 1;
@@ -271,8 +303,8 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     //obstacle management
     for( var x = 0; x < this.obstacles.length; x++){
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
-        this.obstacles.splice(x,1);
-        console.log("got splice");
+            this.obstacles.splice(x,1);
+            console.log("got splice");
         }
         if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
             console.log("player hit");
@@ -281,18 +313,13 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     
 
     if(game.keyboard.consumePressed("o")) {
-        this.obstacles2.push(spawnObstacle(this.positions));
+        spawnObstacle(this);
     }
-
-    this.obstacleSpawnRight.move(elapsedMs);
-    this.obstacleSpawnCenter.move(elapsedMs);
-    this.obstacleSpawnLeft.move(elapsedMs);
 
     this.player.move(elapsedMs);
 
 }, function(context) {
     // draw
-    var scene = this;
     context.fillStyle = "#ffffff";
     context.drawImage(game.images.get("street"), canvas.width/2 - canvas.width*0.35, this.player.y - this.positions.renderDistance);
     //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
@@ -302,17 +329,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     context.fillstyle = "#00ff00";
 
     for(var i = 0; i< this.obstacles.length; i++){
-        drawObstacle(context, this.obstacles[i], this.obstacles[i].color);
-    }
-
-    for(i = 0; i < this.obstacles2.length; i++) {
-        drawEntity(context, this.obstacles2[i]);
+        drawEntity(context, this.obstacles[i], this.obstacles[i].color);
     }
 
     for(i = 0; i< this.obstacles3.length; i++){
         drawObject(context, this.obstacles3[i]);
     }
-
 
     drawEntity(context, scene.obstacleSpawnRight);
     drawEntity(context, scene.obstacleSpawnCenter);
@@ -334,6 +356,12 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
     this.playerV = 2;
 }, function(elapsedMillis) {
     // simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
     //possibly change controls ( tb discussed)
     //move left
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.x >canvas.width/2 - canvas.width*0.4 + 150 && !this.moveTo){
@@ -372,6 +400,55 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
     context.fillRect(0, canvas.height/2 - canvas.height*0.2, canvas.width, canvas.height*0.4);
 
     this.player.draw(context);
+}));
+
+game.scenes.add("death", new Splat.Scene(canvas, function() {
+    //shows the credits. still needs completion.
+    // initialization
+}, function() {
+    // simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
+}, function(context) {
+    // draw
+    context.fillStyle = "#092227";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.fillStyle = "#fff";
+    context.font = "25px helvetica";
+    centerText(context, "Game created by:", 0, canvas.height / 2);
+    centerText(context, "[names here]", 0, canvas.height / 2 + 25);
+    centerText(context, "Created using Splatjs", 0, canvas.height / 2 + 125);
+    centerText(context, "Pixel art created by Joey Edwards", 0, canvas.height / 2 + 150);
+}));
+
+game.scenes.add("car", new Splat.Scene(canvas, function() {
+    //this is filler for in the mean time
+    // initialization
+}, function() {
+    // simulation
+
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
+}, function(context) {
+    // draw
+    context.fillStyle = "#092227";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.fillStyle = "#fff";
+    context.font = "25px helvetica";
+    centerText(context, "Game created by:", 0, canvas.height / 2);
+    centerText(context, "[names here]", 0, canvas.height / 2 + 25);
+    centerText(context, "Created using Splatjs", 0, canvas.height / 2 + 125);
+    centerText(context, "Pixel art created by Joey Edwards", 0, canvas.height / 2 + 150);
 }));
 
 game.scenes.switchTo("loading");
