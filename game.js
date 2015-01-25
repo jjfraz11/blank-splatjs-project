@@ -67,52 +67,36 @@ function drawEntity(context, drawable){
 }
 
 /**
-*	Create a line between two points that the entity moves along 
-*@param {@link Entity} myEntity The entity that i being moved
-*@param {number} x The ending X-coordinate
-*@param {number} y The ending Y-coordinate
-*@param {number} s The speed at which the entity moves
-**/
-function createMovementLine(myEntity, x, y, s){
-    var startX = myEntity.x;
-    var startY = myEntity.y;
-    var endX = x - (myEntity.width/2);
-    var endY = y - (myEntity.height/2);
-    var mySpeed = s;
-    //var errMargin =5;
+ *	Create a line between two points that the entity moves along 
+ *@param {@link Entity} entity The entity that i being moved
+ *@param {number} x The ending X-coordinate
+ *@param {number} y The ending Y-coordinate
+ *@param {number} velocity The speed at which the entity moves
+ **/
+function createMovementLine(entity, x, y, velocity){
+    var finalX = x - (entity.width/2);
+    var finalY = y - (entity.height/2);
 
     /**
      * adjust the velocity of the entity in the x direction
      **/
-    if(endX > (startX -myEntity.width/2 ))
-    {
-	myEntity.vx = mySpeed;
-	
-    }
-    else if (endX < (startX -myEntity.width/2))
-    {
-	myEntity.vx = -mySpeed;
-	
-    }
-    else 
-    {
-	myEntity.vx = 0;
+    if( finalX > (entity.x - entity.width/2 ) ) {
+	entity.vx = velocity;
+    } else if ( finalX < (entity.x - entity.width/2) ) {
+	entity.vx = -velocity;
+    } else {
+	entity.vx = 0;
     }
 
     /**
      * adjust the velocity of the entity in the x direction
      **/
-    if(endY > (startY -myEntity.height/2))
-    {
-	myEntity.vy = mySpeed;
-    }
-    else if (endY < (startY -myEntity.height/2))
-    {
-	myEntity.vy = -mySpeed;
-    }
-    else
-    {
-	myEntity.vy = 0;
+    if( finalY > (entity.y -entity.height/2) ) {
+	entity.vy = velocity;
+    } else if ( finalY < (entity.y -entity.height/2) ) {
+	entity.vy = -velocity;
+    } else {
+	entity.vy = 0;
     }
 }
 
@@ -120,7 +104,6 @@ function drawObstacle(context, drawable, color){
     context.fillStyle = color;
     context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
 }
-
 
 function createSpawner(scene, entity){
     entity.spawn = function (){
@@ -262,51 +245,50 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 }));
 
 game.scenes.add("plane", new Splat.Scene(canvas, function() {
-	// initialization
-	var playerImage = game.images.get("plane-idle");
-	this.player = new Splat.AnimatedEntity(canvas.width/2 - playerImage.width/2,canvas.height/2 -playerImage.height/2,playerImage.width,playerImage.height,playerImage,0,0);
-	this.player.color = "blue";	
+    // initialization
+    var playerImage = game.images.get("plane-idle");
+    this.player = new Splat.AnimatedEntity(canvas.width/2 - playerImage.width/2,canvas.height/2 -playerImage.height/2,playerImage.width,playerImage.height,playerImage,0,0);
+    this.player.color = "blue";
+    this.player.vx = 0;
+    this.player.vy = 0;
+
+    this.moveX = this.player.x;
+    this.moveY = this.player.y;
+    this.moveTo = false;
+    this.playerV = 2;
+}, function(elapsedMillis) {
+    // simulation
+    //possibly change controls ( tb discussed)
+    //move left
+    if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.x >canvas.width/2 - canvas.width*0.4 + 150 && !this.moveTo){
+	this.moveX = this.player.x -300;
+	this.moveTo = true;
+    }
+    //move right
+    if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.x < canvas.width/2 + canvas.width*0.4 - 150 && !this.moveTo){
+	this.moveX = this.player.x + 300;
+	this.moveTo = true;
+    }
+    //move up
+
+    if((game.keyboard.consumePressed("up") || game.keyboard.consumePressed("w")) && this.player.y > canvas.height/2 - canvas.height*0.2 + 120 && !this.moveTo){
+	this.moveY = this.player.y - 150;
+	this.moveTo = true;
+    }
+    //move down
+    if((game.keyboard.consumePressed("down") || game.keyboard.consumePressed("s")) && this.player.y < canvas.height/2 + canvas.height*0.2 - 120 && !this.moveTo){
+	this.moveY = this.player.y + 150;
+	this.moveTo = true;
+    }
+    if(this.player.x !== this.moveX || this.player.y !== this.moveY){
+	createMovementLine(this.player,this.moveX,this.moveY,this.playerV);
+	//console.log(this.player.x, this.moveX,this.player.y,this.moveY );
+    }else{
 	this.player.vx = 0;
 	this.player.vy = 0;
-
-	this.moveX = this.player.x;
-	this.moveY = this.player.y;
 	this.moveTo = false;
-	this.playerV = 2;
-}, function(elapsedMillis) {
-	// simulation
-	//possibly change controls ( tb discussed)
-	//move left
-	if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.x >canvas.width/2 - canvas.width*0.4 + 150 && !this.moveTo){
-		this.moveX = this.player.x -300;
-		this.moveTo = true;
-	}
-	//move right
-	if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.x < canvas.width/2 + canvas.width*0.4 - 150 && !this.moveTo){
-		this.moveX = this.player.x + 300;
-		this.moveTo = true;
-	}
-	//move up
-	
-	if((game.keyboard.consumePressed("up") || game.keyboard.consumePressed("w")) && this.player.y > canvas.height/2 - canvas.height*0.2 + 120 && !this.moveTo){
-		this.moveY = this.player.y - 150;
-		this.moveTo = true;
-	}
-	//move down
-	if((game.keyboard.consumePressed("down") || game.keyboard.consumePressed("s")) && this.player.y < canvas.height/2 + canvas.height*0.2 - 120 && !this.moveTo){
-		this.moveY = this.player.y + 150;
-		this.moveTo = true;
-	}
-	if(this.player.x !== this.moveX || this.player.y !== this.moveY){
-		createMovementLine(this.player,this.moveX,this.moveY,this.playerV);
-		//console.log(this.player.x, this.moveX,this.player.y,this.moveY );
-	}else{
-		this.player.vx = 0;
-		this.player.vy = 0;
-		this.moveTo = false;
-		
-	}
-	this.player.move(elapsedMillis);
+    }
+    this.player.move(elapsedMillis);
 
 }, function(context) {
     // draw
