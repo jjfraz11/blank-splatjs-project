@@ -6,7 +6,23 @@ var canvas = document.getElementById("canvas");
 var manifest = {
     "images": {
 	"runman-idle": "img/runman.png",
-	"plane-idle": "img/plane.png"
+	"plane-idle": "img/plane.png",
+	"cone": "img/cone.png",
+	"crack1": "img/crack1.png",
+	"crack2": "img/crack2.png",
+	"emptyPlane": "img/emptyPlane/png",
+	"manhole": "img/manhole.png",
+	"police": "img/police.png",
+	"racer": "img/racer.png",
+	"sidewalkLine": "img/sidewalkLing.png",
+	"squirel": "img/squirel.png",
+	"street": "img/street.png",
+	"streetPatch1": "img/streetPatch1.png",
+	"streetPatch2": "img/streetPatch2.png",
+	"streetPatch3": "img/streetPatch3.png",
+	"streetPatch4": "img/streetPatch4.png",
+	"workers": "img/workers.png"
+
     },
     "sounds": {
     },
@@ -198,7 +214,6 @@ this.createMovementLine = function (myEntity, x, s){
     }
     if(this.player.x !== this.moveX){
 		this.createMovementLine(this.player,this.moveX,this.playerV);
-		console.log(this.player.x, this.moveX);
 	}else{
 		this.player.vx = 0;
 		this.moveTo = false;
