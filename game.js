@@ -134,6 +134,19 @@ function drawEntity(context, drawable, color){
     context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
 }
 
+function switchScene(myGame, key, sceneName) {
+    if(myGame.keyboard.isPressed(key)) {
+	myGame.scenes.switchTo(sceneName);
+    }
+    /* goes into each scene:
+       switchScene(game, "t", "title");
+       switchScene(game, "m", "death");
+       switchScene(game, "c", "car");
+       switchScene(game, "h", "main");
+       switchScene(game, "p", "plane");
+    */
+}
+
 function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
     console.log(this, scene, type);
 
@@ -158,6 +171,12 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
     // initialization
 }, function() {
     // simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
     if(game.keyboard.consumePressed("space")){
 	game.scenes.switchTo("main");
     }
@@ -198,6 +217,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
 }, function(elapsedMs) {
     //simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
     //possibly change controls ( tb discussed)
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.currentLane > 0){
         this.player.currentLane -= 1;
@@ -263,6 +288,12 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
     this.playerV = 2;
 }, function(elapsedMillis) {
     // simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
     //possibly change controls ( tb discussed)
     //move left
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.x >canvas.width/2 - canvas.width*0.4 + 150 && !this.moveTo){
@@ -301,6 +332,55 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
     context.fillRect(0, canvas.height/2 - canvas.height*0.2, canvas.width, canvas.height*0.4);
 
     this.player.draw(context);
+}));
+
+game.scenes.add("death", new Splat.Scene(canvas, function() {
+    //shows the credits. still needs completion.
+    // initialization
+}, function() {
+    // simulation
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
+}, function(context) {
+    // draw
+    context.fillStyle = "#092227";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.fillStyle = "#fff";
+    context.font = "25px helvetica";
+    centerText(context, "Game created by:", 0, canvas.height / 2);
+    centerText(context, "[names here]", 0, canvas.height / 2 + 25);
+    centerText(context, "Created using Splatjs", 0, canvas.height / 2 + 125);
+    centerText(context, "Pixel art created by Joey Edwards", 0, canvas.height / 2 + 150);
+}));
+
+game.scenes.add("car", new Splat.Scene(canvas, function() {
+    //this is filler for in the mean time
+    // initialization
+}, function() {
+    // simulation
+
+    switchScene(game, "t", "title");
+    switchScene(game, "m", "death");
+    switchScene(game, "c", "car");
+    switchScene(game, "h", "main");
+    switchScene(game, "p", "plane");
+
+}, function(context) {
+    // draw
+    context.fillStyle = "#092227";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.fillStyle = "#fff";
+    context.font = "25px helvetica";
+    centerText(context, "Game created by:", 0, canvas.height / 2);
+    centerText(context, "[names here]", 0, canvas.height / 2 + 25);
+    centerText(context, "Created using Splatjs", 0, canvas.height / 2 + 125);
+    centerText(context, "Pixel art created by Joey Edwards", 0, canvas.height / 2 + 150);
 }));
 
 game.scenes.switchTo("loading");
