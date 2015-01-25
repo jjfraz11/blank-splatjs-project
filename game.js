@@ -164,6 +164,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     var scene = this;
 
     var playerImage = game.images.get("runman-idle");
+    
 
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
 
@@ -251,8 +252,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     // draw
     var scene = this;
     context.fillStyle = "#ffffff";
-    context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
-                     canvas.width*0.4, canvas.height);
+    context.drawImage(game.images.get("street"), canvas.width/2 - canvas.width*0.35, this.player.y - this.positions.renderDistance);
+    //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
+    //                 canvas.width*0.4, canvas.height);
 
     this.player.draw(context);
     context.fillstyle = "#00ff00";
