@@ -231,6 +231,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
         this.obstacles.splice(x,1);
         console.log("got splice");
         }
+        if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
+            console.log("player hit");
+        }
     }
     
 
