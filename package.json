@@ -1,7 +1,7 @@
 {
   "name": "blank-splatjs-project",
   "version": "0.0.0",
-  "description": "Blank SplatJS Project",
+  "description": "infinite runner",
   "main": "index.js",
   "private": true,
   "dependencies": {
