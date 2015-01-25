@@ -66,14 +66,16 @@ function generatePositions(canvas, player){
     };
 }
 
-function spawnObstacle(scene){
-    var positions = scene.positions;
-    var o =new Splat.Entity(positions.randomLane(), positions.renderStart(), 40, 40);
-    o.color = "#00ff00";
 
-    scene.obstacles.push(o);
+function drawEntity(context, drawable, color){
+    if (drawable instanceof Splat.AnimatedEntity ) {
+        drawable.draw(context);
+    } else {
+        context.fillStyle = color;
+        context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
+    }
 
-    return o;
+    console.log(drawable, typeof(drawable));
 }
 
 function randomInterval() {
@@ -89,15 +91,6 @@ function centerText(context, text, offsetX, offsetY) {
     var x = offsetX + (canvas.width / 2) - (w / 2) | 0;
     var y = offsetY | 0;
     context.fillText(text, x, y);
-}
-
-function drawEntity(context, drawable){
-    context.fillStyle = drawable.color;
-    context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
-}
-
-function drawObject(context, drawable){
-    drawable.draw(context);
 }
 
 /**
@@ -138,11 +131,6 @@ function createMovementLine(entity, x, y, velocity){
     }
 }
 
-function drawEntity(context, drawable, color){
-    context.fillStyle = color;
-    context.fillRect(drawable.x, drawable.y, drawable.width, drawable.height);
-}
-
 function switchScene(myGame, key, sceneName) {
     if(myGame.keyboard.isPressed(key)) {
 	myGame.scenes.switchTo(sceneName);
@@ -156,20 +144,24 @@ function switchScene(myGame, key, sceneName) {
     */
 }
 
-function createWorkerSpawner(scene, entity){
-    entity.spawn = function(){
-        var enemy = createObstacle("workers", this.x, this.y);
-        scene.obstacles3.push(enemy);
-        console.log(enemy);
-    };
-    entity.color = "orange";
-    entity.vy = -1;
+function spawnObstacle(scene){
+    var obstacle =new Splat.Entity(scene.positions.randomLane(), scene.positions.renderStart(), 40, 40);
+    obstacle.color = "#00ff00";
+    scene.obstacles.push(obstacle);
+
+    return obstacle;
 }
 
-function createObstacle(imageTitle, xpos, ypos){
+function spawnWorker(scene){
+    //TODO(frazier): factor out hardcoded number for lane
+    var worker = imageEntity("workers", scene.positions.lanes[randomNumber(2)], scene.positions.renderStart());
+    scene.obstacles.push(worker);
+}
+
+function imageEntity(imageTitle, xpos, ypos){
     var image = game.images.get(imageTitle);
-    var obstacle = new Splat.AnimatedEntity(xpos, ypos, image.width, image.height, image, 0, 0);
-    return obstacle;
+    var entity = new Splat.AnimatedEntity(xpos, ypos, image.width, image.height, image, 0, 0);
+    return entity;
 }
 
 function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
@@ -240,39 +232,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.spawners = [];
     this.obstacles = [];
 
-    this.obstacles3 = [];
-
-    this.obstacleSpawnRight = new Splat.Entity(this.positions.lanes[0], 20, 20, 20);
-    this.obstacleSpawnCenter = new Splat.Entity(this.positions.lanes[1], 20, 20, 20);
-    this.obstacleSpawnLeft = new Splat.Entity(this.positions.lanes[2], 20, 20, 20);
-
-    createWorkerSpawner(this, this.obstacleSpawnRight);
-    createSpawner(this, this.obstacleSpawnCenter);
-    createSpawner(this, this.obstacleSpawnLeft);
-
-    this.spawners = [
-        this.obstacleSpawnRight,
-        this.obstacleSpawnLeft,
-        this.obstacleSpawnCenter
-    ];
-
-    //TODO:
-    // Have spawners use entity template
-    // Have spawners pick random lane
-    // Create timers as properties of spawner
-    // Fix spawners array on scene
-    this.timers.spawnObstacle = new Splat.Timer(undefined, 5000, function(){
-        scene.obstacleSpawnRight.spawn();
-        scene.obstacleSpawnCenter.spawn();
-        scene.obstacleSpawnLeft.spawn();
-
-        // for(var i; i < scene.spawners.length; i++) {
-        //     scene.spawners[i].spawn();
-        // }
-        this.reset();
-        this.start();
-    });
-
+    this.workerSpawner   = new ObjectSpawner(this, "workers", randomInterval, spawnWorker);
     this.obstacleSpawner = new ObjectSpawner(this, "obstacles", randomInterval, spawnObstacle);
 
 }, function(elapsedMs) {
@@ -310,7 +270,6 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
             console.log("player hit");
         }
     }
-    
 
     if(game.keyboard.consumePressed("o")) {
         spawnObstacle(this);
@@ -326,19 +285,10 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     //                 canvas.width*0.4, canvas.height);
 
     this.player.draw(context);
-    context.fillstyle = "#00ff00";
 
     for(var i = 0; i< this.obstacles.length; i++){
         drawEntity(context, this.obstacles[i], this.obstacles[i].color);
     }
-
-    for(i = 0; i< this.obstacles3.length; i++){
-        drawObject(context, this.obstacles3[i]);
-    }
-
-    drawEntity(context, scene.obstacleSpawnRight);
-    drawEntity(context, scene.obstacleSpawnCenter);
-    drawEntity(context, scene.obstacleSpawnLeft);
 
 }));
 
