@@ -20,7 +20,7 @@ var game = new Splat.Game(canvas, manifest);
 
 function generatePositions(canvas, player){
     
-    var laneWidth = 2*player.width;
+    var laneWidth = 2.5*player.width;
 
     var centerLane = canvas.width/2 - player.width/2;
     var renderDistance = canvas.height*(7/8);
@@ -132,6 +132,28 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 
 game.scenes.add("main", new Splat.Scene(canvas, function() {
 
+    this.createMovementLine = function (myEntity, x, s){
+	var startX = myEntity.x;
+	var endX = x - (myEntity.width/2);
+	var mySpeed = s;
+	
+	if(endX > (startX -myEntity.width/2 ))
+	{
+	    myEntity.vx = mySpeed;
+	    
+	}
+	else if (endX < (startX -myEntity.width/2))
+	{
+	    myEntity.vx = -mySpeed;
+	    
+	}
+	else 
+	{
+	    myEntity.vx = 0;
+	}
+
+    };
+
     var playerImage = game.images.get("runman-idle");
 
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
@@ -140,26 +162,44 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
                                             canvas.width, canvas.height*(1/8),
                                             canvas.width/2, canvas.height*(15/16));
 
-    this.positions = generatePositions(canvas, this.player);
-
+    this.player.currentLane = 1;
     this.player.color = "red";
-    this.player.vy = -1;
+    this.player.vy = -0.5;
+    this.player.vx = 0;
+    this.moveX = this.player.x;
+
+    this.positions = generatePositions(canvas, this.player);
 
     this.obstacles = [ spawnObstacle(this.positions) ];
 
+    this.moveTo = false;
+    this.playerV = 0.5;
 }, function(elapsedMs) {
     this.player.move(elapsedMs);
     
     //possibly change controls ( tb discussed)
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) &&
-       this.player.x > this.positions.leftBound){
-	this.player.x -= 150;
+       this.player.currentLane !== 2 && !this.moveTo){
+		this.moveX = this.positions.lanes[this.player.currentLane+1] ;//- ((this.player.width/2)-10);
+		this.player.currentLane +=1;
+		this.moveTo = true;
     }
 
     if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) &&
-       this.player.x < this.positions.rightBound){
-	this.player.x += 150;
+       this.player.currentLane !== 0 && !this.moveTo){
+		this.moveX = this.positions.lanes[this.player.currentLane -1] ;//- ((this.player.width/2)-10);
+		this.player.currentLane -=1;
+		this.moveTo = true;
     }
+    if(this.player.x !== this.moveX){
+		this.createMovementLine(this.player,this.moveX,this.playerV);
+		console.log(this.player.x, this.moveX);
+	}else{
+		this.player.vx = 0;
+		this.moveTo = false;
+		
+	}
+	this.player.move(elapsedMs);
 
     if(game.keyboard.consumePressed("o")) {
         this.obstacles.push(spawnObstacle(this.positions));
@@ -222,7 +262,6 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
 	this.player.vx = 0;
 	this.player.vy = 0;
 	this.moveTo = false;
-	
     }
     this.player.move(elapsedMillis);
 
