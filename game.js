@@ -43,29 +43,31 @@ function generatePositions(canvas, player){
     var laneWidth = 2*player.width;
 
     var centerLane = canvas.width/2 - player.width/2;
+    var rightLane = centerLane + laneWidth;
+    var leftLane = centerLane - laneWidth;
     var renderDistance = canvas.height*(7/8);
 
     player.x = centerLane;
     player.y = renderDistance;
 
     return {
-        lanes: [
-            centerLane + laneWidth,
-            centerLane,
-            centerLane - laneWidth
-        ],
+        lanes: [ leftLane, centerLane, rightLane ],
 
-        leftBound: canvas.width/2 - canvas.width*0.2 + laneWidth,
-        rightBound: canvas.width/2 + canvas.width*0.2 - laneWidth,
+        rightLane: rightLane,
+        centerLane: centerLane,
+        leftLane: leftLane,
+
+        leftBound: leftLane - canvas.width*0.2,
+        rightBound: rightLane + canvas.width*0.2,
         renderDistance: renderDistance,
-        renderStart: function() { return player.y - renderDistance; }
 
+        randomLane: function() { return this.lanes[randomNumber(this.lanes.length)]; },
+        renderStart: function() { return player.y - renderDistance; }
     };
 }
 
 function spawnObstacle(positions){
-    var o =new Splat.Entity(positions.lanes[randomNumber(3)],
-                            positions.renderStart(), 40, 40);
+    var o =new Splat.Entity(positions.randomLane(), positions.renderStart(), 40, 40);
     o.color = "#00ff00";
     return o;
 }
@@ -94,29 +96,33 @@ function drawEntity(context, drawable){
  *@param {number} velocity The speed at which the entity moves
  **/
 function createMovementLine(entity, x, y, velocity){
-    var finalX = x - (entity.width/2);
-    var finalY = y - (entity.height/2);
-
     /**
      * adjust the velocity of the entity in the x direction
      **/
-    if( finalX > (entity.x - entity.width/2 ) ) {
-	entity.vx = velocity;
-    } else if ( finalX < (entity.x - entity.width/2) ) {
-	entity.vx = -velocity;
-    } else {
-	entity.vx = 0;
+    var marginX = 1;
+    if (x) {
+        if( x - marginX > entity.x ) {
+	    entity.vx = velocity;
+        } else if ( x + marginX < entity.x ) {
+	    entity.vx = -velocity;
+        } else {
+	    entity.vx = 0;
+            entity.x = x;
+        }
     }
 
     /**
      * adjust the velocity of the entity in the x direction
      **/
-    if( finalY > (entity.y -entity.height/2) ) {
-	entity.vy = velocity;
-    } else if ( finalY < (entity.y -entity.height/2) ) {
-	entity.vy = -velocity;
-    } else {
-	entity.vy = 0;
+    var marginY = 0;
+    if (y) {
+        if( y > entity.y + marginY) {
+	    entity.vy = velocity;
+        } else if ( y < entity.y - marginY) {
+	    entity.vy = -velocity;
+        } else {
+	    entity.vy = 0;
+        }
     }
 }
 
@@ -134,6 +140,15 @@ function createSpawner(scene, entity){
     entity.color = "orange";
     entity.vy = -1;
 }
+
+// function objectSpawner(scene, type, fnSpawn) {
+//     var spawner = {
+//         spawn: fnSpawn
+//     };
+//     console.log(scene, type);
+
+//     return spawner;
+// }
 
 game.scenes.add("title", new Splat.Scene(canvas, function() {
     // initialization
@@ -154,22 +169,8 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 
 game.scenes.add("main", new Splat.Scene(canvas, function() {
     // initialization
-    this.createMovementLine = function (entity, x, velocity){
-	var finalX = x - (entity.width/2);
-	
-	if( finalX > ( entity.x - entity.width/2 ) ) {
-	    entity.vx = velocity;
-	} else if ( finalX < (entity.x - entity.width/2) ) {
-	    entity.vx = -velocity;
-	} else {
-	    entity.vx = 0;
-	}
-    };
-
     var scene = this;
-
     var playerImage = game.animations.get("runman");
-    
 
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
 
@@ -187,46 +188,57 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.moveX = this.player.x;
     this.playerV = 0.5;
 
-    this.spawners = [];
+    // this.spawners = [ objectSpawner(this, "obstacle", [ 20, 20 ], this.positions) ];
     this.obstacles = [];
     this.obstacles2 = [ spawnObstacle(this.positions) ];
 
-    this.obstacleSpawnRight = new Splat.Entity(this.positions.lanes[0], 20, 20, 20);
-    this.obstacleSpawnCenter = new Splat.Entity(this.positions.lanes[1], 20, 20, 20);
-    this.obstacleSpawnLeft = new Splat.Entity(this.positions.lanes[2], 20, 20, 20);
+    this.obstacleSpawnRight = new Splat.Entity(this.positions.rightLane, 20, 20, 20);
+    this.obstacleSpawnCenter = new Splat.Entity(this.positions.centerLane, 20, 20, 20);
+    this.obstacleSpawnLeft = new Splat.Entity(this.positions.leftLane, 20, 20, 20);
+    
+    console.log(JSON.stringify(this.obstacleSpawnLeft));
 
     createSpawner(this, this.obstacleSpawnRight);
     createSpawner(this, this.obstacleSpawnCenter);
     createSpawner(this, this.obstacleSpawnLeft);
 
+    this.spawners = [
+        this.obstacleSpawnRight,
+        this.obstacleSpawnLeft,
+        this.obstacleSpawnCenter
+    ];
+
+    
+    //TODO:
+    // Have spawners use entity template
+    // Have spawners pick random lane
+    // Create timers as properties of spawner
+    // Fix spawners array on scene
     this.timers.spawnObstacle = new Splat.Timer(undefined, 5000, function(){
-        scene.obstacleSpawnRight.spawn();
-        scene.obstacleSpawnCenter.spawn();
-        scene.obstacleSpawnLeft.spawn();
+        for(var i; i < scene.spawners.length; i++) {
+            scene.spawners[i].spawn();
+        }
         this.reset();
         this.start();
     });
-    this.timers.spawnObstacle.start();
 
+    this.timers.spawnObstacle.start();
 
 }, function(elapsedMs) {
     //simulation
     //possibly change controls ( tb discussed)
-    if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) &&
-       this.player.x > this.positions.leftBound){
-        this.moveX = this.positions.lanes[this.player.currentLane + 1];
-        this.player.currentLane +=1;
+    if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.currentLane > 0){
+        this.player.currentLane -= 1;
     }
 
-    if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) &&
-       this.player.x < this.positions.rightBound){
-        this.moveX = this.positions.lanes[this.player.currentLane - 1];
-        this.player.currentLane -=1;
+    if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.currentLane < this.positions.lanes.length - 1){
+        this.player.currentLane += 1;
     }
 
-    if(this.player.x !== this.moveX){
-        this.createMovementLine(this.player,this.moveX,this.playerV);
-        console.log(this.player.x, this.moveX);
+    var moveX = this.positions.lanes[this.player.currentLane], moveY;
+    if(this.player.x !== moveX){
+        createMovementLine(this.player, moveX, moveY, this.playerV);
+        console.log(this.player.x, moveX, moveY, this.player.currentLane);
     } else {
         this.player.vx = 0;
     }
