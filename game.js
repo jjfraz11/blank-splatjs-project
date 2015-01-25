@@ -32,6 +32,11 @@ var manifest = {
             "strip": "img/walk-anim.png",
             "frames": 4,
             "msPerFrame": 100
+        },
+        "rollman": {
+            "strip": "img/roll-anim.png",
+            "frames": 8,
+            "msPerFrame": 50
         }
     }
 };
@@ -231,18 +236,20 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     //possibly change controls ( tb discussed)
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.currentLane > 0){
         this.player.currentLane -= 1;
+        this.player.sprite = game.animations.get("rollman").flipHorizontally();
     }
 
     if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.currentLane < this.positions.lanes.length - 1){
         this.player.currentLane += 1;
+        this.player.sprite = game.animations.get("rollman");
     }
 
     var moveX = this.positions.lanes[this.player.currentLane], moveY;
     if(this.player.x !== moveX){
         createMovementLine(this.player, moveX, moveY, this.playerV);
-        console.log(this.player.x, moveX, moveY, this.player.currentLane);
     } else {
         this.player.vx = 0;
+        this.player.sprite = game.animations.get("runman");
     }
 
     //obstacle management
