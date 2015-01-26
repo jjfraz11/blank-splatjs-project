@@ -318,15 +318,11 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
                     this.spawners[i].timer.stop();
                 }
                 this.player.vy = 0;
+                game.scenes.switchTo("death");
             }
             console.log("player hit");
         }
     }
-
-    //if(game.keyboard.consumePressed("o")) {
-    //    spawnObstacle(this);
-    //}
-    
     this.player.move(elapsedMs);
 
 }, function(context) {
@@ -411,6 +407,7 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
 game.scenes.add("death", new Splat.Scene(canvas, function() {
     //shows the credits. still needs completion.
     // initialization
+    //this.timer = new SplatTimer
 }, function() {
     // simulation
     switchScene(game, "t", "title");
@@ -418,6 +415,7 @@ game.scenes.add("death", new Splat.Scene(canvas, function() {
     switchScene(game, "c", "car");
     switchScene(game, "h", "main");
     switchScene(game, "p", "plane");
+
 
 }, function(context) {
     // draw
@@ -427,9 +425,18 @@ game.scenes.add("death", new Splat.Scene(canvas, function() {
     context.fillStyle = "#fff";
     context.font = "25px helvetica";
     centerText(context, "Game created by:", 0, canvas.height / 2);
-    centerText(context, "[names here]", 0, canvas.height / 2 + 25);
+    centerText(context, "Rex Soiano", 0, canvas.height / 2 + 25);
+    centerText(context, "Wes Wright", 0, canvas.height / 2 + 50);
+    centerText(context, "Jonathan Frazier", 0, canvas.height / 2 + 75);
+    centerText(context, "Anthony Quisenberry", 0, canvas.height / 2 + 100);
     centerText(context, "Created using Splatjs", 0, canvas.height / 2 + 125);
     centerText(context, "Pixel art created by Joey Edwards", 0, canvas.height / 2 + 150);
+
+    centerText(context, "Music by:", 0, canvas.height / 2 + 175);
+
+    centerText(context, "Mr. Frisby's Beat Pocket", 0, canvas.height / 2 + 200);
+    centerText(context, "Crooked Pulse", 0, canvas.height / 2 + 225);
+    centerText(context, "Chris Zabriskie", 0, canvas.height / 2 + 250);
 }));
 
 game.scenes.add("car", new Splat.Scene(canvas, function() {
