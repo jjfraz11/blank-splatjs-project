@@ -21,9 +21,15 @@ var manifest = {
 	"streetPatch2": "img/streetPatch2.png",
 	"streetPatch3": "img/streetPatch3.png",
 	"streetPatch4": "img/streetPatch4.png",
+    "title": "img/title.png",
 	"workers": "img/workers.png"
     },
     "sounds": {
+        "title-music":"sound/Title-Divider.mp3",
+        "runman-music": "sound/runman-Bees_In_My_Blood.mp3",
+        "roll": "sound/roll.mp3",
+        "run": "sound/run.mp3",
+        "hit": "sound/playerhit.mp3"
     },
     "fonts": {
     },
@@ -199,6 +205,11 @@ function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
 game.scenes.add("title", new Splat.Scene(canvas, function() {
     // initialization
     //var workers = game.images.get("workers");
+   // var music = game.sounds.get("title-music");
+    game.sounds.stop("runman-music");
+    game.sounds.play("title-music",true);
+
+    this.image = game.images.get("title");
 }, function() {
     // simulation
     switchScene(game, "t", "title");
@@ -212,7 +223,7 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
     // draw
     context.fillStyle = "#092227";
     context.fillRect(0, 0, canvas.width, canvas.height);
-
+    context.drawImage(this.image,0,0);
     context.fillStyle = "#fff";
     context.font = "25px helvetica";
     centerText(context, "Press Space to Begin", 0, canvas.height / 2 - 13);
@@ -222,6 +233,11 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     // initialization
     var scene = this;
     var speedUpInterval = 2000;
+
+    game.sounds.stop("title-music");
+    game.sounds.play("run",false);
+    game.sounds.play("runman-music",true);
+
     var playerImage = game.animations.get("runman");
 
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0);
@@ -282,11 +298,13 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     if((game.keyboard.consumePressed("left") || game.keyboard.consumePressed("a")) && this.player.currentLane > 0){
         this.player.currentLane -= 1;
         this.player.sprite = game.animations.get("rollman").flipHorizontally();
+        game.sounds.play("roll");
     }
 
     if((game.keyboard.consumePressed("right") || game.keyboard.consumePressed("d")) && this.player.currentLane < this.positions.lanes.length - 1){
         this.player.currentLane += 1;
         this.player.sprite = game.animations.get("rollman");
+        game.sounds.play("roll");
     }
 
     var moveX = this.positions.lanes[this.player.currentLane], moveY;
@@ -325,6 +343,8 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
 }, function(context) {
     // draw
+     context.fillStyle = "#092227";
+    context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "#ffffff";
     context.drawImage(game.images.get("street"), canvas.width/2 - canvas.width*0.35, this.player.y - this.positions.renderDistance);
     //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
@@ -392,6 +412,8 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
 
 }, function(context) {
     // draw
+     context.fillStyle = "#092227";
+    context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "#ffffff";
     context.fillRect(0, canvas.height/2 - canvas.height*0.2, canvas.width, canvas.height*0.4);
 
