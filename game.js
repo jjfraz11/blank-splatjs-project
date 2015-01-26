@@ -10,6 +10,7 @@ var manifest = {
         "cone": "img/cone.png",
 	"crack1": "img/crack1.png",
 	"crack2": "img/crack2.png",
+    "death": "img/deathImage.png",
 	"emptyPlane": "img/emptyPlane.png",
 	"manhole": "img/manhole.png",
 	"police": "img/police.png",
@@ -43,6 +44,11 @@ var manifest = {
             "strip": "img/roll-anim.png",
             "frames": 8,
             "msPerFrame": 50
+        },
+        "death": {
+            "strip": "img/death.png",
+            "frames": 5,
+            "msPerFrame": 80
         }
     }
 };
@@ -88,7 +94,7 @@ function drawEntity(context, drawable, color){
 }
 
 function randomInterval() {
-    return randomNumber(2000);
+    return randomNumber(2000)+500;
 }
 
 function randomNumber(max) {
@@ -153,13 +159,13 @@ function switchScene(myGame, key, sceneName) {
     */
 }
 
-function spawnObstacle(scene){
-    var obstacle =new Splat.Entity(scene.positions.randomLane(), scene.positions.renderStart(), 40, 40);
-    obstacle.color = "#00ff00";
-    scene.obstacles.push(obstacle);
+//function spawnObstacle(scene){
+   // var obstacle =new Splat.Entity(scene.positions.randomLane(), scene.positions.renderStart(), 40, 40);
+   // obstacle.color = "#00ff00";
+   // scene.obstacles.push(obstacle);
 
-    return obstacle;
-}
+    //return obstacle;
+//}
 
 function spawnWorker(scene){
     //TODO(frazier): factor out hardcoded number for lane
@@ -239,7 +245,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     game.sounds.play("run",false);
     game.sounds.play("runman-music",true);
     var playerImage = game.animations.get("runman");
-
+    this.hearts = 3;
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
 
     this.camera = new Splat.EntityBoxCamera(this.player,
@@ -261,7 +267,10 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     this.coneSpawner     = new ObjectSpawner(this, "cones", randomInterval, spawnCone);
     this.workerSpawner   = new ObjectSpawner(this, "workers", randomInterval, spawnWorker);
-    this.obstacleSpawner = new ObjectSpawner(this, "obstacles", randomInterval, spawnObstacle);
+    //this.obstacleSpawner = new ObjectSpawner(this, "obstacles", randomInterval, spawnObstacle);
+    this.deathtimer = new Splat.Timer(undefined,400,function(){
+        this.player.sprite = game.images.get("death");
+    });
 
 }, function(elapsedMs) {
     //simulation
@@ -296,17 +305,28 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     for( var x = 0; x < this.obstacles.length; x++){
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
             this.obstacles.splice(x,1);
+            
         }
         if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
             this.obstacles.splice(x,1);
+            this.hearts-=1;
+            console.log(this.hearts);
+            if (this.hearts <1){
+                this.player.sprite = game.animations.get("death");
+                this.deathtimer.start();
+                for (var i =0; i < this.spawners.length; i++) {
+                    this.spawners[i].timer.stop();
+                }
+                this.player.vy = 0;
+            }
             console.log("player hit");
         }
     }
 
-    if(game.keyboard.consumePressed("o")) {
-        spawnObstacle(this);
-    }
-
+    //if(game.keyboard.consumePressed("o")) {
+    //    spawnObstacle(this);
+    //}
+    
     this.player.move(elapsedMs);
 
 }, function(context) {
