@@ -94,7 +94,7 @@ function drawEntity(context, drawable, color){
 }
 
 function randomInterval() {
-    return randomNumber(2000)+500;
+    return randomNumber(5000) + 100;
 }
 
 function randomNumber(max) {
@@ -224,10 +224,7 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
     switchScene(game, "h", "main");
     switchScene(game, "p", "plane");
 
-    if(game.keyboard.consumePressed("space")){
-	   game.scenes.switchTo("main");
-    }
-    
+    switchScene(game, "space", "main");
 }, function(context) {
     // draw
     context.fillStyle = "#092227";
@@ -240,13 +237,29 @@ game.scenes.add("title", new Splat.Scene(canvas, function() {
 
 game.scenes.add("main", new Splat.Scene(canvas, function() {
     // initialization
-    //game.sounds.stop("");
+    var scene = this;
+    var speedUpInterval = 2000;
+
     game.sounds.stop("title-music");
     game.sounds.play("run",false);
     game.sounds.play("runman-music",true);
+
     var playerImage = game.animations.get("runman");
+
     this.hearts = 3;
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
+
+    this.player.collision = false;
+    this.blinkCounter = 0;
+
+    this.player.draw = function(context) {
+        if ( this.collision ) {
+            if (!this.visible) {
+                return;
+            }
+        }
+        Splat.AnimatedEntity.prototype.draw.call(this, context);
+    };
 
     this.camera = new Splat.EntityBoxCamera(this.player,
                                             canvas.width, canvas.height*(1/8),
@@ -256,7 +269,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     this.player.currentLane = 1;
     this.player.color = "red";
-    this.player.vy = -1;
+    this.player.vy = -0.1;
     this.player.vx = 0;
 
     this.moveX = this.player.x;
@@ -272,8 +285,19 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
         this.player.sprite = game.images.get("death");
     });
 
+    this.timers.speedUp = new Splat.Timer(undefined, speedUpInterval, function(){
+        scene.player.vy -= 0.1;
+        console.log("Player speed: " + scene.player.vy);
+        this.reset();
+        this.start();
+    });
+
+    this.timers.speedUp.start();
+
 }, function(elapsedMs) {
     //simulation
+    var scene = this;
+
     switchScene(game, "t", "title");
     switchScene(game, "m", "death");
     switchScene(game, "c", "car");
@@ -302,6 +326,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     }
 
     //obstacle management
+    var disablePlayerCollisions = function() { scene.player.collision = false; };
     for( var x = 0; x < this.obstacles.length; x++){
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
             this.obstacles.splice(x,1);
@@ -309,6 +334,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
         }
         if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
             this.obstacles.splice(x,1);
+
             this.hearts-=1;
             console.log(this.hearts);
             if (this.hearts <1){
@@ -321,8 +347,18 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
                 game.scenes.switchTo("death");
             }
             console.log("player hit");
+
+            console.log("player hit");
         }
     }
+
+    if(game.keyboard.consumePressed("o")) {
+        spawnObstacle(this);
+    }
+
+    this.blinkCounter += elapsedMs;
+    this.player.visible = !this.player.collision || ( Math.floor( this.blinkCounter / 100 ) % 2 === 1 );
+
     this.player.move(elapsedMs);
 
 }, function(context) {
