@@ -332,6 +332,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
             this.obstacles.splice(x,1);
             
         }
+
         if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
             this.obstacles.splice(x,1);
 
@@ -346,14 +347,13 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
                 this.player.vy = 0;
                 game.scenes.switchTo("death");
             }
-            console.log("player hit");
+
+            this.player.collision = true;
+            this.timers.playerCollision = new Splat.Timer(undefined, 1000, disablePlayerCollisions);
+            this.timers.playerCollision.start();
 
             console.log("player hit");
         }
-    }
-
-    if(game.keyboard.consumePressed("o")) {
-        spawnObstacle(this);
     }
 
     this.blinkCounter += elapsedMs;
