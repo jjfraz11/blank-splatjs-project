@@ -295,10 +295,10 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     var playerImage = game.animations.get("runman");
 
     this.hearts = 3;
-    this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),playerImage.width,playerImage.height,playerImage,0,0); 
-
+    this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),
+                                           playerImage.width,playerImage.height,playerImage,0,0);
     this.player.collision = false;
-    this.blinkCounter = 0;
+    this.player.blinkCounter = 0;
 
     this.player.draw = function(context) {
         if ( this.collision ) {
@@ -327,7 +327,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.obstacles = [];
     this.effects = [];
 
-    this.coneSpawner     = new ObjectSpawner(scene, "cone",     fnRandomInterval(3000, 4000), spawnCone);
+    this.coneSpawner     = new ObjectSpawner(scene, "cone",     fnRandomInterval(3000, 3000), spawnCone);
     this.crackSpawner    = new ObjectSpawner(scene, "crack",    fnRandomInterval(1000, 5000), spawnCrack);
     this.manholeSpawner  = new ObjectSpawner(scene, "manhole",  fnRandomInterval(5000, 5000), spawnManhole);
     this.patchSpawner    = new ObjectSpawner(scene, "patch",    fnRandomInterval( 500, 5000), spawnPatch);
@@ -420,8 +420,8 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
         }
     }
 
-    this.blinkCounter += elapsedMs;
-    this.player.visible = !this.player.collision || ( Math.floor( this.blinkCounter / 100 ) % 2 === 1 );
+    this.player.blinkCounter += elapsedMs;
+    this.player.visible = !this.player.collision || ( Math.floor( this.player.blinkCounter / 100 ) % 2 === 1 );
 
     this.player.move(elapsedMs);
 
