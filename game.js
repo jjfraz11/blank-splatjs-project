@@ -93,9 +93,9 @@ function drawEntity(context, drawable, color){
     }
 }
 
-function fnRandomInterval(minInterval) {
+function fnRandomInterval(minInterval,range) {
     return function randomInterval() {
-        return randomNumber(5000) + minInterval;
+        return randomNumber(range) + minInterval;
     };
 }
 
@@ -327,12 +327,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.obstacles = [];
     this.effects = [];
 
-    this.coneSpawner     = new ObjectSpawner(this, "cone",     fnRandomInterval(500), spawnCone);
-    this.crackSpawner    = new ObjectSpawner(this, "crack",    fnRandomInterval(1000), spawnCrack);
-    this.manholeSpawner  = new ObjectSpawner(this, "manhole",  fnRandomInterval(1500), spawnManhole);
-    this.patchSpawner    = new ObjectSpawner(this, "patch",    fnRandomInterval(500), spawnPatch);
-    this.squirrelSpawner = new ObjectSpawner(this, "squirrel", fnRandomInterval(2500), spawnSquirrel);
-    this.workerSpawner   = new ObjectSpawner(this, "workers",  fnRandomInterval(3000), spawnWorker);
+    this.coneSpawner     = new ObjectSpawner(scene, "cone",     fnRandomInterval(3000, 4000), spawnCone);
+    this.crackSpawner    = new ObjectSpawner(scene, "crack",    fnRandomInterval(1000, 5000), spawnCrack);
+    this.manholeSpawner  = new ObjectSpawner(scene, "manhole",  fnRandomInterval(5000, 5000), spawnManhole);
+    this.patchSpawner    = new ObjectSpawner(scene, "patch",    fnRandomInterval( 500, 5000), spawnPatch);
+    this.squirrelSpawner = new ObjectSpawner(scene, "squirrel", fnRandomInterval(7500, 2000), spawnSquirrel);
+    this.workersSpawner  = new ObjectSpawner(scene, "workers",  fnRandomInterval(3000, 5000), spawnWorker);
 
     this.deathtimer = new Splat.Timer(undefined,400,function(){
         this.player.sprite = game.images.get("death");
