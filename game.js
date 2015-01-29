@@ -10,13 +10,13 @@ var manifest = {
         "cone": "img/cone.png",
 	"crack1": "img/crack1.png",
 	"crack2": "img/crack2.png",
-    "death": "img/deathImage.png",
+        "death": "img/deathImage.png",
 	"emptyPlane": "img/emptyPlane.png",
 	"manhole": "img/manhole.png",
-	"police": "img/police.png",
+	"policeCar": "img/police.png",
 	"racer": "img/racer.png",
 	"sidewalkLine": "img/sidewalkLine.png",
-	"squirel": "img/squirel.png",
+	"squirrel": "img/squirel.png",
 	"street": "img/street.png",
 	"streetPatch1": "img/streetPatch1.png",
 	"streetPatch2": "img/streetPatch2.png",
@@ -78,7 +78,7 @@ function generatePositions(canvas, player){
         rightBound: rightLane + canvas.width*0.2,
         renderDistance: renderDistance,
 
-        randomLane: function() { return this.lanes[randomNumber(this.lanes.length)]; },
+        randomLane: function() { return sampleArray(this.lanes); },
         renderStart: function() { return player.y - renderDistance; }
     };
 }
@@ -93,9 +93,16 @@ function drawEntity(context, drawable, color){
     }
 }
 
-function randomInterval() {
-    return randomNumber(5000) + 100;
+function fnRandomInterval(minInterval) {
+    return function randomInterval() {
+        return randomNumber(5000) + minInterval;
+    };
 }
+
+function sampleArray(array) {
+    return array[randomNumber(array.length)];
+}
+
 
 function randomNumber(max) {
     return Math.floor((Math.random() * max));
@@ -159,16 +166,22 @@ function switchScene(myGame, key, sceneName) {
     */
 }
 
-//function spawnObstacle(scene){
-   // var obstacle =new Splat.Entity(scene.positions.randomLane(), scene.positions.renderStart(), 40, 40);
-   // obstacle.color = "#00ff00";
-   // scene.obstacles.push(obstacle);
+// function spawnPoliceCar(scene){
+//     var policeCar = imageEntity("policeCar", scene.positions.randomLane(),scene.positions.renderStart());
+//     scene.obstacles.push(policeCar);
 
-    //return obstacle;
-//}
+//     return policeCar;
+// }
+
+// function spawnRacer(scene){
+//     //TODO(frazier): factor out hardcoded number for lane
+//     var racer = imageEntity("racer", scene.positions.randomLane(), scene.positions.renderStart());
+//     scene.obstacles.push(racer);
+
+//     return racer;
+// }
 
 function spawnWorker(scene){
-    //TODO(frazier): factor out hardcoded number for lane
     var worker = imageEntity("workers", scene.positions.lanes[randomNumber(2)], scene.positions.renderStart());
     scene.obstacles.push(worker);
 
@@ -176,11 +189,44 @@ function spawnWorker(scene){
 }
 
 function spawnCone(scene){
-    //TODO(frazier): factor out hardcoded number for lane
-    var cone = imageEntity("cone", scene.positions.lanes[randomNumber(3)], scene.positions.renderStart());
+    var cone = imageEntity("cone", scene.positions.randomLane(), scene.positions.renderStart());
     scene.obstacles.push(cone);
 
     return cone;
+}
+
+function spawnManhole(scene){
+    var manhole = imageEntity("manhole", scene.positions.randomLane(), scene.positions.renderStart());
+    scene.obstacles.push(manhole);
+
+    return manhole;
+}
+
+function spawnSquirrel(scene){
+    var squirrel = imageEntity("squirrel", scene.positions.randomLane(), scene.positions.renderStart());
+    scene.obstacles.push(squirrel);
+
+    return squirrel;
+}
+
+function spawnCrack(scene){
+    var crackObjects = [
+        { type: "crack1", lane: scene.positions.lanes[0] },
+        { type: "crack2", lane: scene.positions.lanes[2] }
+    ];
+    var selectedCrack = sampleArray(crackObjects);
+    var crack = imageEntity(selectedCrack.type, selectedCrack.lane, scene.positions.renderStart());
+    scene.effects.push(crack);
+
+    return crack;
+}
+
+function spawnPatch(scene){
+    var patchType = [ "streetPatch1", "streetPatch2", "streetPatch3", "streetPatch4" ][randomNumber(4)];
+    var patch = imageEntity(patchType, scene.positions.randomLane(), scene.positions.renderStart());
+    scene.effects.push(patch);
+
+    return patch;
 }
 
 function imageEntity(imageTitle, xpos, ypos){
@@ -206,6 +252,8 @@ function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
 
     scene.timers[type] = this.timer;
     scene.spawners.push(spawner);
+
+    return spawner;
 }
 
 game.scenes.add("title", new Splat.Scene(canvas, function() {
@@ -277,10 +325,15 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     this.spawners = [];
     this.obstacles = [];
+    this.effects = [];
 
-    this.coneSpawner     = new ObjectSpawner(this, "cones", randomInterval, spawnCone);
-    this.workerSpawner   = new ObjectSpawner(this, "workers", randomInterval, spawnWorker);
-    //this.obstacleSpawner = new ObjectSpawner(this, "obstacles", randomInterval, spawnObstacle);
+    this.coneSpawner     = new ObjectSpawner(this, "cone",     fnRandomInterval(500), spawnCone);
+    this.crackSpawner    = new ObjectSpawner(this, "crack",    fnRandomInterval(1000), spawnCrack);
+    this.manholeSpawner  = new ObjectSpawner(this, "manhole",  fnRandomInterval(1500), spawnManhole);
+    this.patchSpawner    = new ObjectSpawner(this, "patch",    fnRandomInterval(500), spawnPatch);
+    this.squirrelSpawner = new ObjectSpawner(this, "squirrel", fnRandomInterval(2500), spawnSquirrel);
+    this.workerSpawner   = new ObjectSpawner(this, "workers",  fnRandomInterval(3000), spawnWorker);
+
     this.deathtimer = new Splat.Timer(undefined,400,function(){
         this.player.sprite = game.images.get("death");
     });
@@ -326,7 +379,10 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     }
 
     //obstacle management
-    var disablePlayerCollisions = function() { scene.player.collision = false; };
+    // Define collision timer callback outside of loop
+    var afterPlayerCollision = function() {
+        scene.player.collision = false;
+    };
     for( var x = 0; x < this.obstacles.length; x++){
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
             this.obstacles.splice(x,1);
@@ -348,11 +404,19 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
                 game.scenes.switchTo("death");
             }
 
-            this.player.collision = true;
-            this.timers.playerCollision = new Splat.Timer(undefined, 1000, disablePlayerCollisions);
+            this.timers.playerCollision = new Splat.Timer(undefined, 1000, afterPlayerCollision);
             this.timers.playerCollision.start();
+            this.player.vy = Math.ceil((10*scene.player.vy)/2)/10;
+            this.player.collision = true;
 
             console.log("player hit");
+        }
+    }
+
+    for( x = 0; x < this.effects.length; x++) {
+        // Clean up off screen effects
+        if(this.effects[x] && this.effects[x].y > this.player.y + canvas.height * (1/8)) {
+            this.effects.splice(x,1);
         }
     }
 
@@ -363,19 +427,22 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
 }, function(context) {
     // draw
-     context.fillStyle = "#092227";
+    context.fillStyle = "#092227";
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "#ffffff";
     context.drawImage(game.images.get("street"), canvas.width/2 - canvas.width*0.35, this.player.y - this.positions.renderDistance);
     //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
     //                 canvas.width*0.4, canvas.height);
 
-    this.player.draw(context);
-
     for(var i = 0; i< this.obstacles.length; i++){
         drawEntity(context, this.obstacles[i], this.obstacles[i].color);
     }
 
+    for(i = 0; i < this.effects.length; i++) {
+        drawEntity(context, this.effects[i], this.effects[i].color);
+    }
+
+    this.player.draw(context);
 }));
 
 game.scenes.add("plane", new Splat.Scene(canvas, function() {
@@ -432,7 +499,7 @@ game.scenes.add("plane", new Splat.Scene(canvas, function() {
 
 }, function(context) {
     // draw
-     context.fillStyle = "#092227";
+    context.fillStyle = "#092227";
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "#ffffff";
     context.fillRect(0, canvas.height/2 - canvas.height*0.2, canvas.width, canvas.height*0.4);
