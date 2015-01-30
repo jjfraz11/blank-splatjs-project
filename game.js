@@ -62,7 +62,7 @@ function generatePositions(canvas, player){
     var centerLane = canvas.width/2 - player.width/2;
     var rightLane = centerLane + laneWidth;
     var leftLane = centerLane - laneWidth;
-    var renderDistance = canvas.height*(7/8);
+    var renderDistance = canvas.height;
 
     player.x = centerLane;
     player.y = renderDistance;
@@ -93,7 +93,7 @@ function drawEntity(context, drawable, color){
     }
 }
 
-function fnRandomInterval(minInterval,range) {
+function getFnRandomInterval(minInterval,range) {
     return function randomInterval() {
         return randomNumber(range) + minInterval;
     };
@@ -317,6 +317,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     this.player.currentLane = 1;
     this.player.color = "red";
+    this.player.dead = false;
     this.player.vy = -0.1;
     this.player.vx = 0;
 
@@ -327,15 +328,17 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.obstacles = [];
     this.effects = [];
 
-    this.coneSpawner     = new ObjectSpawner(scene, "cone",     fnRandomInterval(3000, 3000), spawnCone);
-    this.crackSpawner    = new ObjectSpawner(scene, "crack",    fnRandomInterval(1000, 5000), spawnCrack);
-    this.manholeSpawner  = new ObjectSpawner(scene, "manhole",  fnRandomInterval(5000, 5000), spawnManhole);
-    this.patchSpawner    = new ObjectSpawner(scene, "patch",    fnRandomInterval( 500, 5000), spawnPatch);
-    this.squirrelSpawner = new ObjectSpawner(scene, "squirrel", fnRandomInterval(7500, 2000), spawnSquirrel);
-    this.workersSpawner  = new ObjectSpawner(scene, "workers",  fnRandomInterval(3000, 5000), spawnWorker);
+    this.coneSpawner     = new ObjectSpawner(scene, "cone",     getFnRandomInterval(3000, 3000), spawnCone);
+    this.crackSpawner    = new ObjectSpawner(scene, "crack",    getFnRandomInterval(1000, 5000), spawnCrack);
+    this.manholeSpawner  = new ObjectSpawner(scene, "manhole",  getFnRandomInterval(5000, 5000), spawnManhole);
+    this.patchSpawner    = new ObjectSpawner(scene, "patch",    getFnRandomInterval( 500, 5000), spawnPatch);
+    this.squirrelSpawner = new ObjectSpawner(scene, "squirrel", getFnRandomInterval(7500, 2000), spawnSquirrel);
+    this.workersSpawner  = new ObjectSpawner(scene, "workers",  getFnRandomInterval(3000, 5000), spawnWorker);
 
-    this.deathtimer = new Splat.Timer(undefined,400,function(){
-        this.player.sprite = game.images.get("death");
+    this.timers.deathtimer = new Splat.Timer(undefined,1000,function(){
+        scene.timers.speedUp.stop();
+        scene.player.vy = 0;
+        scene.player.sprite = game.images.get("death");
     });
 
     this.timers.speedUp = new Splat.Timer(undefined, speedUpInterval, function(){
@@ -373,7 +376,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     var moveX = this.positions.lanes[this.player.currentLane], moveY;
     if(this.player.x !== moveX){
         createMovementLine(this.player, moveX, moveY, this.playerV);
-    } else {
+    } else if (this.player.dead !== true ){
         this.player.vx = 0;
         this.player.sprite = game.animations.get("runman");
     }
@@ -395,13 +398,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
             this.hearts-=1;
             console.log(this.hearts);
             if (this.hearts <1){
+                this.player.dead = true;
                 this.player.sprite = game.animations.get("death");
-                this.deathtimer.start();
+                this.timers.deathtimer.start();
                 for (var i =0; i < this.spawners.length; i++) {
                     this.spawners[i].timer.stop();
                 }
-                this.player.vy = 0;
-                game.scenes.switchTo("death");
             }
 
             this.timers.playerCollision = new Splat.Timer(undefined, 1000, afterPlayerCollision);
@@ -434,12 +436,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
     //                 canvas.width*0.4, canvas.height);
 
-    for(var i = 0; i< this.obstacles.length; i++){
-        drawEntity(context, this.obstacles[i], this.obstacles[i].color);
+    for(var i = 0; i < this.effects.length; i++) {
+        drawEntity(context, this.effects[i], this.effects[i].color);
     }
 
-    for(i = 0; i < this.effects.length; i++) {
-        drawEntity(context, this.effects[i], this.effects[i].color);
+    for(i = 0; i< this.obstacles.length; i++){
+        drawEntity(context, this.obstacles[i], this.obstacles[i].color);
     }
 
     this.player.draw(context);
