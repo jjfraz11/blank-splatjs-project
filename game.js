@@ -241,7 +241,7 @@ function ObjectSpawner(scene, type, fnDelay, fnSpawn) {
     this.spawn = function () { return fnSpawn(scene); };
 
     this.timer = new Splat.Timer(undefined, fnDelay(), function() {
-        console.log(type + " spawn");
+       // console.log(type + " spawn");
         spawner.spawn();
 
         this.expireMillis = fnDelay();
@@ -287,6 +287,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     // initialization
     var scene = this;
     var speedUpInterval = 2000;
+    
 
     game.sounds.stop("title-music");
     game.sounds.play("run",false);
@@ -295,8 +296,10 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     var playerImage = game.animations.get("runman");
 
     this.hearts = 3;
+    this.heartsStr = "Hearts: "+ this.hearts.toString();
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),
                                            playerImage.width,playerImage.height,playerImage,0,0);
+    this.heartHolder = new Splat.Entity(20,20,1,1);
     this.player.collision = false;
     this.player.blinkCounter = 0;
 
@@ -320,6 +323,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.player.vy = -0.1;
     this.player.vx = 0;
 
+    scene.heartHolder.vy = -0.1;
     this.moveX = this.player.x;
     this.playerV = 0.5;
 
@@ -340,7 +344,8 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
     this.timers.speedUp = new Splat.Timer(undefined, speedUpInterval, function(){
         scene.player.vy -= 0.1;
-        console.log("Player speed: " + scene.player.vy);
+        scene.heartHolder.vy -= 0.1;
+       // console.log("Player speed: " + scene.player.vy);
         this.reset();
         this.start();
     });
@@ -350,7 +355,6 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 }, function(elapsedMs) {
     //simulation
     var scene = this;
-
     switchScene(game, "t", "title");
     switchScene(game, "m", "death");
     switchScene(game, "c", "car");
@@ -393,7 +397,9 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
             this.obstacles.splice(x,1);
 
             this.hearts-=1;
-            console.log(this.hearts);
+
+            this.heartStr = "Hearts: "+ this.hearts.toString();
+            //console.log(this.hearts);
             if (this.hearts <1){
                 this.player.sprite = game.animations.get("death");
                 this.deathtimer.start();
@@ -407,9 +413,10 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
             this.timers.playerCollision = new Splat.Timer(undefined, 1000, afterPlayerCollision);
             this.timers.playerCollision.start();
             this.player.vy = Math.ceil((10*scene.player.vy)/2)/10;
+            this.heartHolder.vy = Math.ceil((10*scene.heartHolder.vy)/2)/10;
             this.player.collision = true;
 
-            console.log("player hit");
+            //console.log("player hit");
         }
     }
 
@@ -424,13 +431,19 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.player.visible = !this.player.collision || ( Math.floor( this.player.blinkCounter / 100 ) % 2 === 1 );
 
     this.player.move(elapsedMs);
-
+    this.heartHolder.move(elapsedMs);
 }, function(context) {
     // draw
+    //==============================================================================================make this more efficient
+    
+    context.fillStyle = "#ffffff";
+    context.font = "25px helvetica";
+    context.fillText(this.heartsStr, this.heartHolder.x,this.heartHolder.y);
     context.fillStyle = "#092227";
     context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "#ffffff";
+    
     context.drawImage(game.images.get("street"), canvas.width/2 - canvas.width*0.35, this.player.y - this.positions.renderDistance);
+
     //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
     //                 canvas.width*0.4, canvas.height);
 

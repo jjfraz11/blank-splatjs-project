@@ -1,0 +1,29 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'c:\\Program Files\\nodejs\\node.exe',
+1 verbose cli   'c:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'run',
+1 verbose cli   'build' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.35
+4 verbose run-script [ 'prebuild', 'build', 'postbuild' ]
+5 info prebuild blank-splatjs-project@0.0.0
+6 info build blank-splatjs-project@0.0.0
+7 verbose unsafe-perm in lifecycle true
+8 info blank-splatjs-project@0.0.0 Failed to exec build script
+9 error blank-splatjs-project@0.0.0 build: `npm run lint-js && npm run build-js`
+9 error Exit status 1
+10 error Failed at the blank-splatjs-project@0.0.0 build script.
+10 error This is most likely a problem with the blank-splatjs-project package,
+10 error not with npm itself.
+10 error Tell the author that this fails on your system:
+10 error     npm run lint-js && npm run build-js
+10 error You can get their info via:
+10 error     npm owner ls blank-splatjs-project
+10 error There is likely additional logging output above.
+11 error System Windows_NT 6.1.7601
+12 error command "c:\\Program Files\\nodejs\\node.exe" "c:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "run" "build"
+13 error cwd c:\Users\AQuisenberry\Development\js\global-game-jam-15
+14 error node -v v0.10.35
+15 error npm -v 1.4.28
+16 error code ELIFECYCLE
+17 verbose exit [ 1, true ]
