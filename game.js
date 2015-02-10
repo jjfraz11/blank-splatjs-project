@@ -398,7 +398,6 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
             this.hearts-=1;
 
             this.heartsStr = "Hearts: "+ this.hearts.toString();
-            console.log(this.heartsStr);
             if (this.hearts <1){
                 this.player.sprite = game.animations.get("death");
                 this.deathtimer.start();
