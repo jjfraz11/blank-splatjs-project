@@ -389,8 +389,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     };
     for( var x = 0; x < this.obstacles.length; x++){
         if(this.obstacles[x] && this.obstacles[x].y > this.player.y + canvas.height * (1/8)){
-            this.obstacles.splice(x,1);
-            
+            this.obstacles.splice(x,1);   
         }
 
         if(this.obstacles[x] && this.obstacles[x].collides(this.player)){
@@ -398,8 +397,8 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
 
             this.hearts-=1;
 
-            this.heartStr = "Hearts: "+ this.hearts.toString();
-            //console.log(this.hearts);
+            this.heartsStr = "Hearts: "+ this.hearts.toString();
+            console.log(this.heartsStr);
             if (this.hearts <1){
                 this.player.sprite = game.animations.get("death");
                 this.deathtimer.start();
@@ -436,12 +435,12 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     // draw
     //==============================================================================================make this more efficient
     
+    
+    context.fillStyle = "#092227";
+    context.fillRect(0, this.heartHolder.y-20, canvas.width, canvas.height);
     context.fillStyle = "#ffffff";
     context.font = "25px helvetica";
     context.fillText(this.heartsStr, this.heartHolder.x,this.heartHolder.y);
-    context.fillStyle = "#092227";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    
     context.drawImage(game.images.get("street"), canvas.width/2 - canvas.width*0.35, this.player.y - this.positions.renderDistance);
 
     //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
