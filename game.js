@@ -54,7 +54,11 @@ var manifest = {
 };
 
 var game = new Splat.Game(canvas, manifest);
+game.canvasCorner = new Splat.Entity(0,0,1,1);
 
+function resetEntity(ent){
+    ent = new Splat.Entity(0,0,1,1);
+}
 function generatePositions(canvas, player){
     
     var laneWidth = 2*player.width;
@@ -287,7 +291,8 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     // initialization
     var scene = this;
     var speedUpInterval = 2000;
-    
+    resetEntity(game.canvasCorner);
+    scene.heartHolder = game.canvasCorner;
 
     game.sounds.stop("title-music");
     game.sounds.play("run",false);
@@ -299,7 +304,7 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     this.heartsStr = "Hearts: "+ this.hearts.toString();
     this.player = new Splat.AnimatedEntity(canvas.width/2 - 25,canvas.height*(7/8),
                                            playerImage.width,playerImage.height,playerImage,0,0);
-    this.heartHolder = new Splat.Entity(20,20,1,1);
+    
     this.player.collision = false;
     this.player.blinkCounter = 0;
 
@@ -437,10 +442,10 @@ game.scenes.add("main", new Splat.Scene(canvas, function() {
     
     
     context.fillStyle = "#092227";
-    context.fillRect(0, this.heartHolder.y-20, canvas.width, canvas.height);
+    context.fillRect(this.heartHolder.x, this.heartHolder.y, canvas.width, canvas.height);
     context.fillStyle = "#ffffff";
     context.font = "25px helvetica";
-    context.fillText(this.heartsStr, this.heartHolder.x,this.heartHolder.y);
+    context.fillText(this.heartsStr, this.heartHolder.x + 20,this.heartHolder.y + 20);
     context.drawImage(game.images.get("street"), canvas.width/2 - canvas.width*0.35, this.player.y - this.positions.renderDistance);
 
     //context.fillRect(canvas.width/2 - canvas.width*0.2, this.player.y - this.positions.renderDistance,
