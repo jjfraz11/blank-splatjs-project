@@ -1,0 +1,6 @@
+1) design collectables
+2) add collectable functionality
+3) break out scenes
+4) break out reusable functions
+
+n)package as chromeapp
